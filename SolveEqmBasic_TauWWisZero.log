@@ -1,0 +1,46 @@
+SolveEqmBasic_TauWWisZero                 17-Aug-2016 
+ 
+  <strong>SolveEqmBasic</strong>.m    
+ 
+   Takes the TalentData.mat data on Taus, Z's, TgHome, A(i,t).
+   Solves for the equilibrium w(i) and Y
+ 
+   See 2015-06-02-SolvingGE.pdf notes.
+ 
+   Method: For each year,
+     1. Guess values for {mgtilde}, Y ==> 5 unknowns
+     2. Solve for {wi} from Hi^supply = Hi^demand
+     3. Compute mghat, Yhat 
+     4. Iterate until converge.
+
+ 
+=============================================================
+KEY PARAMETER VALUES:    CaseName = TauWWisZero
+             theta =  2.1200
+               eta =  0.1030
+      theta*(1-eta)=  1.9016
+                mu =  0.5259
+             sigma =  3.0000
+      LFPMinFactor =  0.5000
+     ConstrainTauH = -0.8000
+     NumHomeDraws  =      100000
+ OccupationtoIdentifyPhi = 42 Farm Work                                 
+         phi(Farm) =  0.9984 1.1759 1.3030 1.4251 1.4463 1.3774 
+   WeightPigMiddle =  0.2500
+ 
+********************************************************
+NOTE WELL: WW and WM are *swtiched* in everything that follows
+   in order to check robustness to assuming tau(WW)=0 as our
+   normalization
+********************************************************
+ 
+=============================================================
+ 
+.No sign change found in fzerochad or Inf/Imag problem. Stopping...
+if system_dependent('IsDebugMode')==1, dbquit; end
+MasterProgram
+
+phiFarm =
+
+    0.0117    0.3602    0.6408    0.5100    0.5606    0.6170
+
