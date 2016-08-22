@@ -74,18 +74,18 @@ for loopthome=1:2;  % The first time we use time-varying thome, the second we im
         
         
         %%%%%%%%%%%%%%VERSION 1%%%%%%%%%%%%%%%%%%%%%
-        step=100;
-        rangemax=20000;
-        rangemaxextended=max(rangemax, wHomeoriginal+step);
-        wwrange=10:step:rangemaxextended  ;
-        
-        [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
-                
-        numberjtable(t,loopthome)=j;
-        minerrtable(t,loopthome)=minerr;
-        wHometable(t,loopthome)=wHome;
-        
-        wHome = fminbnd(f, max(wHome-(step-1),1),wHome+(step-1));
+%         step=10;
+%         rangemax=20000;
+%         rangemaxextended=max(rangemax, wHomeoriginal+step);
+%         wwrange=10:step:rangemaxextended  ;
+%         
+%         [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
+%                 
+%         numberjtable(t,loopthome)=j;
+%         minerrtable(t,loopthome)=minerr;
+%         wHometable(t,loopthome)=wHome;
+%         
+%         wHome = fminbnd(f, max(wHome-(step-1),1),wHome+(step-1));
         %%%%%%%%%%%%%%END of VERSION 1%%%%%%%%%%%%%%%%%%%%%
         
         
@@ -93,23 +93,23 @@ for loopthome=1:2;  % The first time we use time-varying thome, the second we im
         
         
         %%%%%%%%%%%%%%VERSION 2%%%%%%%%%%%%%%%%%%%%%
-%         step=5000;
-%         rangemax=20000;
-%         rangemaxextended=max(rangemax, wHomeoriginal+step);
-%         wwrange=1:step:rangemaxextended;
-%         
-%         for jk=1:size(wwrange,2)-1
-%            wHomeinrange(jk) = fminbnd(f, wwrange(jk), wwrange(jk+1) );
-%         end
-%         
-%         wwrange = [wwrange wHomeinrange];
-%         
-%         [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
-%         
-% 		wHomeoriginal(t,loopthome)=wHomeoriginal;
-%         numberjtable(t,loopthome)=j;
-%         minerrtable(t,loopthome)=minerr;
-% 		wHometable(t,loopthome)=wHome;
+        step=5000;
+        rangemax=20000;
+        rangemaxextended=max(rangemax, wHomeoriginal+step);
+        wwrange=1:step:rangemaxextended;
+        
+        for jk=1:size(wwrange,2)-1
+           wHomeinrange(jk) = fminbnd(f, wwrange(jk), wwrange(jk+1) );
+        end
+        
+        wwrange = [wwrange wHomeinrange];
+        
+        [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
+        
+		wHomeoriginal(t,loopthome)=wHomeoriginal;
+        numberjtable(t,loopthome)=j;
+        minerrtable(t,loopthome)=minerr;
+		wHometable(t,loopthome)=wHome;
 		
         %%%%%%%%%%%%%%END of VERSION 2%%%%%%%%%%%%%%%%%%%%%
         
@@ -237,10 +237,12 @@ for i=Mkt;
     
     if i==FARM
         for jjjj=1:jjj
-            phiphi=(1-eta)/beta*simany(jjjj)/(1-simany(jjjj));
-            if abs(PhiKeyOcc-phiphi)<1e-2;
-                si=simany(jjjj);
-            end
+            phiphi(jjjj)=(1-eta)/beta*simany(jjjj)/(1-simany(jjjj));
+            diffwith_phifarm=abs(PhiKeyOcc-phiphi(jjjj));
+            
+%             if abs(PhiKeyOcc-phiphi)<1e-2;
+%                 si=simany(jjjj);
+%             end
         end
     else
         if jjj>1
@@ -250,24 +252,31 @@ for i=Mkt;
         else
             %disp 'nosolforsomei problem'
             %keyboard
-            [si,fval,flag]=fzerochad(fwage,[.5 .7],[1.2 1.05],500,0);
+            
+            if i==FARM
+               [si,fval,flag]=fzerochad(fwage,[.05 .2],[1.5 1.05],200,0);
+               if flag==-1
+                  [si,fval,flag]=fzerochad(fwage,[.5 .7],[1.2 1.05],200,0);
+               end
+            else
+               [si,fval,flag]=fzerochad(fwage,[.5 .7],[1.2 1.05],500,0);
+            end
+            
         end
     end
     
 
     
-    if jjj==0; % there was no solution,    fzerochad did not work, just minimize instead of a zero
-        if i==FARM; % FARM ==> Look extra hard at low values
-            [si,fval,flag]=fzerochad(fwage,[.05 .2],[1.5 1.05],200,0);
-        end;
-        if flag==-1;
-            fwage2=@(ss) abs(fwage(ss));
-            [si1,fval1,exitflag1]=fminbnd(fwage2,.1,.45);
-            [si2,fval2,exitflag2]=fminbnd(fwage2,.45,.99);
-            si=si2;
-            if fval1<fval2 & fval2>200; si=si1; end;
-            %disp 'Flag == -1. Stopping...'; keyboard;
-        end;
+    if jjj==0 & flag==-1 % there was no solution,    fzerochad did not work, just minimize instead of a zero
+        fwage2=@(ss) abs(fwage(ss));
+        [si1,fval1,exitflag1]=fminbnd(fwage2,.1,.45);
+        [si2,fval2,exitflag2]=fminbnd(fwage2,.45,.99);
+        si=si2;
+        if fval1<fval2 & fval2>200; si=si1; end;
+            %disp 'Flag == -1. Stopping...'; keyboard;        
+        if exitflag1~=1 & exitflag2~=1 
+           nosolforsomei=1;
+        end
     end;
     [err,wagefiti,wi,Pworki,phii,THomei]=fwage(si);
     s(i)=si; w(i)=wi; Pwork(i)=Pworki; phi(i)=phii; wagefit(i)=wagefiti; THome(i)=THomei;

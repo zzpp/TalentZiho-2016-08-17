@@ -74,18 +74,18 @@ for loopthome=1:2;  % The first time we use time-varying thome, the second we im
         
         
         %%%%%%%%%%%%%%VERSION 1%%%%%%%%%%%%%%%%%%%%%
-        step=100;
-        rangemax=20000;
-        rangemaxextended=max(rangemax, wHomeoriginal+step);
-        wwrange=10:step:rangemaxextended  ;
-        
-        [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
-                
-        numberjtable(t,loopthome)=j;
-        minerrtable(t,loopthome)=minerr;
-        wHometable(t,loopthome)=wHome;
-        
-        wHome = fminbnd(f, max(wHome-(step-1),1),wHome+(step-1));
+%         step=10;
+%         rangemax=20000;
+%         rangemaxextended=max(rangemax, wHomeoriginal+step);
+%         wwrange=10:step:rangemaxextended  ;
+%         
+%         [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
+%                 
+%         numberjtable(t,loopthome)=j;
+%         minerrtable(t,loopthome)=minerr;
+%         wHometable(t,loopthome)=wHome;
+%         
+%         wHome = fminbnd(f, max(wHome-(step-1),1),wHome+(step-1));
         %%%%%%%%%%%%%%END of VERSION 1%%%%%%%%%%%%%%%%%%%%%
         
         
@@ -93,23 +93,23 @@ for loopthome=1:2;  % The first time we use time-varying thome, the second we im
         
         
         %%%%%%%%%%%%%%VERSION 2%%%%%%%%%%%%%%%%%%%%%
-%         step=5000;
-%         rangemax=20000;
-%         rangemaxextended=max(rangemax, wHomeoriginal+step);
-%         wwrange=1:step:rangemaxextended;
-%         
-%         for jk=1:size(wwrange,2)-1
-%            wHomeinrange(jk) = fminbnd(f, wwrange(jk), wwrange(jk+1) );
-%         end
-%         
-%         wwrange = [wwrange wHomeinrange];
-%         
-%         [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
-%         
-% 		wHomeoriginal(t,loopthome)=wHomeoriginal;
-%         numberjtable(t,loopthome)=j;
-%         minerrtable(t,loopthome)=minerr;
-% 		wHometable(t,loopthome)=wHome;
+        step=5000;
+        rangemax=20000;
+        rangemaxextended=max(rangemax, wHomeoriginal+step);
+        wwrange=1:step:rangemaxextended;
+        
+        for jk=1:size(wwrange,2)-1
+           wHomeinrange(jk) = fminbnd(f, wwrange(jk), wwrange(jk+1) );
+        end
+        
+        wwrange = [wwrange wHomeinrange];
+        
+        [wHome,minerr,j]=solveWHomeGRID(wm_tauw,wm_tauh,wwrange,wagebar,pt,lambda,beta,eta,theta,gam,FARM,PhiKeyOcc(t),pHome,thome,Tbar(:,t));
+        
+		wHomeoriginal(t,loopthome)=wHomeoriginal;
+        numberjtable(t,loopthome)=j;
+        minerrtable(t,loopthome)=minerr;
+		wHometable(t,loopthome)=wHome;
 		
         %%%%%%%%%%%%%%END of VERSION 2%%%%%%%%%%%%%%%%%%%%%
         
@@ -237,11 +237,16 @@ for i=Mkt;
     
     if i==FARM
         for jjjj=1:jjj
-            phiphi=(1-eta)/beta*simany(jjjj)/(1-simany(jjjj));
-            if abs(PhiKeyOcc-phiphi)<1e-2;
-                si=simany(jjjj);
-            end
+            phiphi(jjjj)=(1-eta)/beta*simany(jjjj)/(1-simany(jjjj));
+            diffwith_phifarm(jjjj)=abs(PhiKeyOcc-phiphi(jjjj));
+            
+%             if abs(PhiKeyOcc-phiphi)<1e-2;
+%                 si=simany(jjjj);
+%             end
         end
+        [mindiff, minjjjj]=min(diffwith_phifarm);
+        si=simany(minjjjj);
+        
     else
         if jjj>1
             si=simany(2);
